@@ -1,0 +1,111 @@
+<!DOCTYPE html><html><head><title>README</title><meta http-equiv="Content-Type" content="text/html" charset="UTF-8"><link rel="stylesheet" media="all" href="./docco.css"></head><body><div id="container"><div id="background"></div><div id="jump_to">Jump To &hellip;<div id="jump_wrapper"><div id="jump_page"><a href="./index.html" class="source"><span class="file_name">README</span></a><a href="./src/data_urls.coffee.html" class="source "><span class="base_path">src / </span><span class="file_name">data_urls.coffee</span></a><a href="./src/downloader.coffee.html" class="source "><span class="base_path">src / </span><span class="file_name">downloader.coffee</span></a><a href="./src/parser.coffee.html" class="source "><span class="base_path">src / </span><span class="file_name">parser.coffee</span></a><a href="./src/scraper.coffee.html" class="source "><span class="base_path">src / </span><span class="file_name">scraper.coffee</span></a></div></div></div><table cellpadding="0" cellspacing="0"><thead><tr><th class="docs"></th><th class="code"></th></tr></thead><tbody><tr id="section"><td class="docs"><h1>pandata
+</h1><p>Pandora scraper</p><h3>Version</h3><p>0.0.1</p><h3>Author</h3><p><span class="gravatar"><img src="http://www.gravatar.com/avatar/8695dd57e7495d7e5d0b10d7aae88161"/><span>Will Mayner &lt;wmayner@gmail.com&gt; (http://www.willmayner.com)</span></span></p><h3>Repository</h3><p>git - https://github.com/willmayner/pandata</p><h3>Dependencies </h3><ul><li><b>URIjs </b><span>*</span></li><li><b>request </b><span>*</span></li><li><b>cheerio </b><span>*</span></li><li><b>when </b><span>*</span></li></ul><p><h3>Stats</h3><pre class="code_stats">
+http://cloc.sourceforge.net v 1.55  T=0.5 s (8.0 files/s, 1040.0 lines/s)
+-------------------------------------------------------------------------------
+Language                     files          blank        comment           code
+-------------------------------------------------------------------------------
+CoffeeScript                     4             64            195            261
+-------------------------------------------------------------------------------
+SUM:                             4             64            195            261
+-------------------------------------------------------------------------------
+</pre></p></td><td id="content" class="code"><h1>pandata</h1>
+
+<p>This is a Node.js port of <a href="https://github.com/ustasb">Brian Ustas's</a>
+<a href="https://github.com/ustasb/pandata">Pandata</a> module, originally written for
+Ruby. Node.js is asynchronous, making this module significantly faster than the
+original. Promises are used to handle sequential and parallel asynchronous
+requests.</p>
+
+<p>It is a library for downloading a user's Pandora.com data. This data includes:</p>
+
+<ul>
+<li>Playing Station*</li>
+<li>Recent Activity*</li>
+<li>Stations*</li>
+<li>Bookmarks (artists, tracks)*</li>
+<li>Likes (albums, artists, stations, tracks)</li>
+<li>Followers</li>
+<li>Following</li>
+</ul>
+
+<p>Where possible, Pandora <a href="http://www.pandora.com/feeds">feeds</a> are used
+(indicated by an asterisk above).</p>
+
+<p>Pandata can only access public Pandora profiles (profiles are public by
+default). Users can make their profiles private in Pandora's settings.</p>
+
+<h2>Usage</h2>
+
+<h3>As a library</h3>
+
+<p>First, grab a Pandora webname from an email address, and create a new Pandata
+scraper for that user:</p>
+
+<pre><code>Pandata = require 'pandata'
+
+# Pandata.get takes either an email or a Pandora webname, and a callback to
+# execute once a webname is retrieved
+Pandata.get 'wmayner@gmail.com', (webname) -&gt;
+
+  # Create a new scraper for the user
+  wills_scraper = new Pandata(webname)
+</code></pre>
+
+<p>Next, use the API to scrape data. The API methods return <strong>promises</strong> for the
+data. Use them like so:</p>
+
+<pre><code>  # Get recent activity
+  wills_scraper.recent_activity()
+    .then(
+      # The promise resolved successfully
+      (data) -&gt;
+        console.log "Will's recent activity on Pandora:"
+        console.log data
+        # Do something with the data
+      # The promise was rejected for some reason
+      (reason) -&gt;
+        console.log "Something went wrong!"
+        console.error reason
+        # Error handling
+    )
+
+  # Get only liked tracks
+  wills_scraper.likes('tracks')
+    .then(
+      # The promise resolved successfully
+      (data) -&gt;
+        console.log "Tracks Will likes on Pandora:"
+        console.log data
+        # Do something with the data
+      # The promise was rejected for some reason
+      (reason) -&gt;
+        console.log "Something went wrong!"
+        console.error reason
+        # Error handling
+    )
+</code></pre>
+
+<p>For more information on the API methods and the data returned, refer to the the
+<a href="https://github.com/crowdsurf/crowdsurf/tree/develop/pandata/src">API
+documentation</a>.</p>
+
+<h4>A note on promises</h4>
+
+<p>Pandata's promises are generated by <a href="https://github.com/cujojs/when">when</a>,
+are thus <em>thenable</em>, and in full compliance with the <a href="http://promises-aplus.github.io/promises-spec/">Promises/A+</a> spec. This means they can be
+used with any promise implementation that is also compliant.</p>
+
+<p>See <a href="https://github.com/cujojs/when">when's documentation</a> for more
+information.</p>
+
+<h3>As a command-line tool</h3>
+
+<p>If you need to use Pandata on the command line, then there's no need for a
+Node.js version, since the Ruby version provides CLI functionality. See the
+instructions on how to install the original Ruby version in the <a href="https://github.com/ustasb/pandata">Pandata
+repository</a>.</p>
+
+<h2>Credits</h2>
+
+<p>The original ruby version was written by <a href="https://github.com/ustasb">Brian
+Ustas</a>.</p>  </td></tr></tbody></table><div id="generated">generated Sun May 18 2014 23:57:48 GMT-0500 (CDT)  </div></div></body></html>

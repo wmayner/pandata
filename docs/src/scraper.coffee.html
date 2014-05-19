@@ -1,0 +1,256 @@
+<!DOCTYPE html><html><head><title>scraper.coffee</title><meta http-equiv="Content-Type" content="text/html" charset="UTF-8"><link rel="stylesheet" media="all" href="../docco.css"></head><body><div id="container"><div id="background"></div><div id="jump_to">Jump To &hellip;<div id="jump_wrapper"><div id="jump_page"><a href="../index.html" class="source"><span class="file_name">README</span></a><a href="../src/data_urls.coffee.html" class="source "><span class="base_path">src / </span><span class="file_name">data_urls.coffee</span></a><a href="../src/downloader.coffee.html" class="source "><span class="base_path">src / </span><span class="file_name">downloader.coffee</span></a><a href="../src/parser.coffee.html" class="source "><span class="base_path">src / </span><span class="file_name">parser.coffee</span></a><a href="../src/scraper.coffee.html" class="source selected"><span class="base_path">src / </span><span class="file_name">scraper.coffee</span></a></div></div></div><table cellpadding="0" cellspacing="0"><thead><tr><th class="docs"><h1>scraper.coffee</h1><div class="filepath">src/</div></th><th class="code"></th></tr></thead><tbody><tr id="section-1"><td class="docs"><div class="pilwrap"><a href="#section-1" class="pilcrow">&#182;</a></div><p>External dependencies</p>
+</td><td class="code"><div class="highlight"><pre><span class="nv">whenjs = </span><span class="nx">require</span> <span class="s">&#39;when&#39;</span>
+<span class="nv">unfoldList = </span><span class="nx">require</span> <span class="s">&#39;when/unfold/list&#39;</span>
+<span class="nv">cheerio = </span><span class="nx">require</span> <span class="s">&#39;cheerio&#39;</span></pre></div></td></tr><tr id="section-2"><td class="docs"><div class="pilwrap"><a href="#section-2" class="pilcrow">&#182;</a></div><p>Internal dependencies</p>
+</td><td class="code"><div class="highlight"><pre><span class="nv">DATA_FEED_URLS = </span><span class="nx">require</span> <span class="s">&#39;./data_urls&#39;</span>
+<span class="nv">Parser = </span><span class="nx">require</span> <span class="s">&#39;./parser&#39;</span>
+<span class="nv">Downloader = </span><span class="nx">require</span> <span class="s">&#39;./downloader&#39;</span></pre></div></td></tr><tr id="section-3"><td class="docs"><div class="pilwrap"><a href="#section-3" class="pilcrow">&#182;</a></div><h1>Pandata</h1>
+</td><td class="code"><div class="highlight"><pre></pre></div></td></tr><tr id="section-4"><td class="docs"><div class="pilwrap"><a href="#section-4" class="pilcrow">&#182;</a></div><p>This is the main class of the module, which exposes the API. Use
+like so:</p>
+
+<pre><code>Pandata = require 'pandata'
+Pandata.get 'john@example.com', (err, webname) -&gt;
+  scraper = new Pandata webname
+</code></pre>
+</td><td class="code"><div class="highlight"><pre><span class="nv">module.exports = </span><span class="k">class</span> <span class="nx">Pandata</span>
+  <span class="nv">constructor: </span><span class="nf">(@webname) -&gt;</span>
+    <span class="vi">@parser = </span><span class="k">new</span> <span class="nx">Parser</span></pre></div></td></tr><tr id="section-5"><td class="docs"><div class="pilwrap"><a href="#section-5" class="pilcrow">&#182;</a></div><h3>get</h3>
+
+<p>Get a Pandora webname by searching for a string (such as an
+email address), and execute a callback on it.</p>
+
+<p>The callback must have the signature <code>(error, webname)</code>.</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="vi">@get: </span><span class="nf">(user_id, callback) -&gt;</span>
+    <span class="nv">search_url = </span><span class="nx">DATA_FEED_URLS</span><span class="p">.</span><span class="nx">user_search</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="s">&#39;%{searchString}&#39;</span><span class="p">,</span> <span class="nx">user_id</span><span class="p">)</span>
+    <span class="nx">Downloader</span><span class="p">.</span><span class="nx">read_page</span> <span class="nx">search_url</span><span class="p">,</span> <span class="nf">(data) -&gt;</span>
+      <span class="nv">$ = </span><span class="nx">cheerio</span><span class="p">.</span><span class="nx">load</span> <span class="nx">data</span>
+      <span class="nv">webnames = </span><span class="nx">Parser</span><span class="p">.</span><span class="nx">get_webnames_from_search</span><span class="p">(</span><span class="nx">$</span><span class="p">)</span>
+
+      <span class="k">if</span> <span class="nx">user_id</span> <span class="k">in</span> <span class="nx">webnames</span>
+        <span class="nx">callback</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">user_id</span>
+      <span class="k">else</span> <span class="k">if</span> <span class="nx">webnames</span><span class="p">.</span><span class="nx">length</span> <span class="o">is</span> <span class="mi">1</span> <span class="o">and</span> <span class="sr">/.*@.*\..*/</span><span class="p">.</span><span class="nx">test</span> <span class="nx">user_id</span>
+        <span class="nx">callback</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">webnames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+      <span class="k">else</span> <span class="k">if</span> <span class="nx">webnames</span><span class="o">?</span> <span class="o">and</span> <span class="nx">webnames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">isnt</span> <span class="kc">undefined</span>
+        <span class="nx">callback</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">webnames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+      <span class="k">else</span>
+        <span class="nx">callback</span> <span class="nb">Error</span><span class="p">(</span><span class="s">&quot;&quot;&quot;[Pandata] Couldn&#39;t find a Pandora user with that</span>
+<span class="s">          email or webname.&quot;&quot;&quot;</span><span class="p">),</span> <span class="kc">null</span></pre></div></td></tr><tr id="section-6"><td class="docs"><div class="pilwrap"><a href="#section-6" class="pilcrow">&#182;</a></div><h2>API</h2>
+</td><td class="code"><div class="highlight"><pre></pre></div></td></tr><tr id="section-7"><td class="docs"><div class="pilwrap"><a href="#section-7" class="pilcrow">&#182;</a></div><h3>recent_activity</h3>
+
+<p>Get a list of artists and tracks a user has listened to
+recently.</p>
+
+<p>Returns a promise for an array of tracks and artists. A track
+is an object with <code>track</code> and <code>artist</code> fields. An artist is
+just a string.</p>
+
+<pre><code>[ {track: 'Promises', artist: 'The Range'}
+, 'The Range'
+, 'MGMT'
+, {track: 'Kids', artist: 'MGMT'}
+]
+</code></pre>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">recent_activity: </span><span class="nf">-&gt;</span>
+    <span class="nx">@_scrape_for</span><span class="p">(</span><span class="s">&#39;recent_activity&#39;</span><span class="p">,</span> <span class="s">&#39;get_recent_activity&#39;</span><span class="p">)</span></pre></div></td></tr><tr id="section-8"><td class="docs"><div class="pilwrap"><a href="#section-8" class="pilcrow">&#182;</a></div><h3>playing_station</h3>
+
+<p>Get the user's currently playing station. Get the station a
+user is currently playing (this means the one that is
+currently selected for playback in Pandora; the user may not
+actually be on pandora.com listening to it.)</p>
+
+<p>Returns a promise for the name of the currently playing
+station as a string:</p>
+
+<pre><code>'The Range Radio'
+</code></pre>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">playing_station: </span><span class="nf">-&gt;</span>
+    <span class="nx">@_scrape_for</span><span class="p">(</span><span class="s">&#39;playing_station&#39;</span><span class="p">,</span> <span class="s">&#39;get_playing_station&#39;</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">then</span> <span class="nf">(result) -&gt;</span> <span class="k">return</span> <span class="nx">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></pre></div></td></tr><tr id="section-9"><td class="docs"><div class="pilwrap"><a href="#section-9" class="pilcrow">&#182;</a></div><h3>stations</h3>
+
+<p>Get the stations a user has listened to or created.</p>
+
+<p>Returns a promise for an array of station names:</p>
+
+<pre><code>['The Range Radio', 'MGMT Radio']
+</code></pre>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">stations: </span><span class="nf">-&gt;</span>
+    <span class="nx">@_scrape_for</span><span class="p">(</span><span class="s">&#39;stations&#39;</span><span class="p">,</span> <span class="s">&#39;get_stations&#39;</span><span class="p">)</span></pre></div></td></tr><tr id="section-10"><td class="docs"><div class="pilwrap"><a href="#section-10" class="pilcrow">&#182;</a></div><h3>bookmarks</h3>
+
+<p>Get tracks and artists a user has bookmarked.</p>
+
+<p>Returns a promise for an object of <code>tracks</code> and <code>artists</code>:</p>
+
+<pre><code>{ tracks: [
+    {track: 'Promises', artist: 'The Range'}
+  , {track: 'Kids', artits: 'MGMT'}
+  ]
+, artists: ['The Range', 'MGMT']
+}
+</code></pre>
+
+<p>Also accepts an optional string argument to limit the
+result to a particular category, either <code>'tracks'</code>,
+<code>'artists'</code>, <code>'stations'</code>, or <code>'albums'</code>.</p>
+
+<p>For example, <code>scraper.bookmarks('tracks')</code> returns a
+promise for an array of tracks:</p>
+
+<pre><code>[ {track: 'Promises', artist: 'The Range'}
+, {track: 'Kids', artist: 'MGMT'}
+]
+</code></pre>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">bookmarks: </span><span class="nf">(bookmark_type = &#39;all&#39;) -&gt;</span>
+    <span class="k">switch</span> <span class="nx">bookmark_type</span>
+      <span class="k">when</span> <span class="s">&#39;tracks&#39;</span>
+        <span class="k">return</span> <span class="nx">@_scrape_for</span><span class="p">(</span><span class="s">&#39;bookmarked_tracks&#39;</span><span class="p">,</span> <span class="s">&#39;get_bookmarked_tracks&#39;</span><span class="p">)</span>
+      <span class="k">when</span> <span class="s">&#39;artists&#39;</span>
+        <span class="k">return</span> <span class="nx">@_scrape_for</span><span class="p">(</span><span class="s">&#39;bookmarked_artists&#39;</span><span class="p">,</span> <span class="s">&#39;get_bookmarked_artists&#39;</span><span class="p">)</span>
+      <span class="k">when</span> <span class="s">&#39;all&#39;</span></pre></div></td></tr><tr id="section-11"><td class="docs"><div class="pilwrap"><a href="#section-11" class="pilcrow">&#182;</a></div><p>Wait for all the scraping promises to resolve before
+combining them into the returned object</p>
+</td><td class="code"><div class="highlight"><pre>        <span class="nx">whenjs</span><span class="p">.</span><span class="nx">all</span><span class="p">([</span>
+          <span class="nx">@bookmarks</span><span class="p">(</span><span class="s">&#39;artists&#39;</span><span class="p">)</span>
+          <span class="nx">@bookmarks</span><span class="p">(</span><span class="s">&#39;tracks&#39;</span><span class="p">)</span>
+        <span class="p">]).</span><span class="nx">then</span><span class="p">(</span>
+          <span class="nf">(results) -&gt;</span>
+            <span class="nv">artists: </span><span class="nx">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="nv">tracks: </span><span class="nx">results</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+          <span class="nf">(reason) -&gt;</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">error</span> <span class="nx">reason</span>
+        <span class="p">)</span></pre></div></td></tr><tr id="section-12"><td class="docs"><div class="pilwrap"><a href="#section-12" class="pilcrow">&#182;</a></div><h3>likes</h3>
+
+<p>Get tracks, artists, stations, and albums a user has liked.</p>
+
+<p>Returns a promise for an object containing arrays of
+tracks, artists, stations, and albums:</p>
+
+<pre><code>{ tracks: [
+    {track: 'Promises', artist: 'The Range'}
+  , {track: 'Kids', artist: 'MGMT'}
+  ]
+, artists: ['The Range', 'MGMT']
+, stations: ['The Range Radio', 'MGMT Radio']
+, albums: [
+    {album: 'Nonfiction', artist: 'The Range' }
+  , {album: 'Oracular Spectacular', artist: 'MGMT'}
+  ]
+}
+</code></pre>
+
+<p>Also accepts an optional string argument to limit the
+result to a particular category, either <code>'tracks'</code>,
+<code>'artists'</code>, <code>'stations'</code>, or <code>'albums'</code>.</p>
+
+<p>For example, <code>scraper.likes('tracks')</code> returns a promise for
+an array of tracks:</p>
+
+<pre><code>[ {track: 'Promises', artist: 'The Range'}
+, {track: 'Kids', artist: 'MGMT'}
+]
+</code></pre>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">likes: </span><span class="nf">(like_type = &#39;all&#39;) -&gt;</span>
+    <span class="k">switch</span> <span class="nx">like_type</span>
+      <span class="k">when</span> <span class="s">&#39;tracks&#39;</span>
+        <span class="nx">@_scrape_for</span><span class="p">(</span><span class="s">&#39;liked_tracks&#39;</span><span class="p">,</span> <span class="s">&#39;get_liked_tracks&#39;</span><span class="p">)</span>
+      <span class="k">when</span> <span class="s">&#39;artists&#39;</span>
+        <span class="nx">@_scrape_for</span><span class="p">(</span><span class="s">&#39;liked_artists&#39;</span><span class="p">,</span> <span class="s">&#39;get_liked_artists&#39;</span><span class="p">)</span>
+      <span class="k">when</span> <span class="s">&#39;stations&#39;</span>
+        <span class="nx">@_scrape_for</span><span class="p">(</span><span class="s">&#39;liked_stations&#39;</span><span class="p">,</span> <span class="s">&#39;get_liked_stations&#39;</span><span class="p">)</span>
+      <span class="k">when</span> <span class="s">&#39;albums&#39;</span>
+        <span class="nx">@_scrape_for</span><span class="p">(</span><span class="s">&#39;liked_albums&#39;</span><span class="p">,</span> <span class="s">&#39;get_liked_albums&#39;</span><span class="p">)</span>
+      <span class="k">when</span> <span class="s">&#39;all&#39;</span></pre></div></td></tr><tr id="section-13"><td class="docs"><div class="pilwrap"><a href="#section-13" class="pilcrow">&#182;</a></div><p>Wait for all the scraping promises to resolve before
+combining them into the returned object</p>
+</td><td class="code"><div class="highlight"><pre>        <span class="nx">whenjs</span><span class="p">.</span><span class="nx">all</span><span class="p">([</span>
+          <span class="nx">@likes</span><span class="p">(</span><span class="s">&#39;artists&#39;</span><span class="p">)</span>
+          <span class="nx">@likes</span><span class="p">(</span><span class="s">&#39;albums&#39;</span><span class="p">)</span>
+          <span class="nx">@likes</span><span class="p">(</span><span class="s">&#39;stations&#39;</span><span class="p">)</span>
+          <span class="nx">@likes</span><span class="p">(</span><span class="s">&#39;tracks&#39;</span><span class="p">)</span>
+        <span class="p">]).</span><span class="nx">then</span><span class="p">(</span>
+          <span class="nf">(results) -&gt;</span>
+            <span class="nv">artists: </span><span class="nx">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="nv">albums: </span><span class="nx">results</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="nv">stations: </span><span class="nx">results</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="nv">tracks: </span><span class="nx">results</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+          <span class="nf">(reason) -&gt;</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">error</span> <span class="nx">reason</span>
+        <span class="p">)</span></pre></div></td></tr><tr id="section-14"><td class="docs"><div class="pilwrap"><a href="#section-14" class="pilcrow">&#182;</a></div><h3>following</h3>
+
+<p>Get the Pandora users that follow this user.</p>
+
+<p>Returns a promise for an array of user objects:</p>
+
+<pre><code>[ { name: 'Will Mayner'
+  , webname: 'wmayner'
+  , href: '/profile/wmayner'
+  }
+]
+</code></pre>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">following: </span><span class="nf">-&gt;</span>
+    <span class="nx">@_scrape_for</span><span class="p">(</span><span class="s">&#39;following&#39;</span><span class="p">,</span> <span class="s">&#39;get_following&#39;</span><span class="p">)</span></pre></div></td></tr><tr id="section-15"><td class="docs"><div class="pilwrap"><a href="#section-15" class="pilcrow">&#182;</a></div><h3>followers</h3>
+
+<p>Get the Pandora users this user is following.</p>
+
+<p>Returns a promise for an array of user objects:</p>
+
+<pre><code>[ { name: 'Will Mayner'
+  , webname: 'wmayner'
+  , href: '/profile/wmayner'
+  }
+]
+</code></pre>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">followers: </span><span class="nf">-&gt;</span>
+    <span class="nx">@_scrape_for</span><span class="p">(</span><span class="s">&#39;followers&#39;</span><span class="p">,</span> <span class="s">&#39;get_followers&#39;</span><span class="p">)</span></pre></div></td></tr><tr id="section-16"><td class="docs"><div class="pilwrap"><a href="#section-16" class="pilcrow">&#182;</a></div><h2>Private methods</h2>
+</td><td class="code"><div class="highlight"><pre></pre></div></td></tr><tr id="section-17"><td class="docs"><div class="pilwrap"><a href="#section-17" class="pilcrow">&#182;</a></div><p>Downloads all data of a given type and calls the supplied
+<code>Parser</code> method.</p>
+
+<p>Returns a promise for the array of results.</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">_scrape_for: </span><span class="nf">(data_type, parser_method) -&gt;</span></pre></div></td></tr><tr id="section-18"><td class="docs"><div class="pilwrap"><a href="#section-18" class="pilcrow">&#182;</a></div><p>This is called iteratively by <code>unfoldList</code> as long as
+<code>condition</code> is not met</p>
+</td><td class="code"><div class="highlight"><pre>    <span class="nv">unspool = </span><span class="nf">(next_data_indices) =&gt;</span></pre></div></td></tr><tr id="section-19"><td class="docs"><div class="pilwrap"><a href="#section-19" class="pilcrow">&#182;</a></div><p>Must return a promise</p>
+</td><td class="code"><div class="highlight"><pre>      <span class="nv">deferred = </span><span class="nx">whenjs</span><span class="p">.</span><span class="nx">defer</span><span class="p">()</span></pre></div></td></tr><tr id="section-20"><td class="docs"><div class="pilwrap"><a href="#section-20" class="pilcrow">&#182;</a></div><p>We'll give the resolver to the <code>Downloader</code></p>
+</td><td class="code"><div class="highlight"><pre>      <span class="nv">resolver = </span><span class="nx">deferred</span><span class="p">.</span><span class="nx">resolver</span>
+      <span class="nv">url = </span><span class="nx">@_get_url</span> <span class="nx">data_type</span><span class="p">,</span> <span class="nx">next_data_indices</span>
+      <span class="nx">Downloader</span><span class="p">.</span><span class="nx">read_page</span> <span class="nx">url</span><span class="p">,</span> <span class="nf">(data) =&gt;</span></pre></div></td></tr><tr id="section-21"><td class="docs"><div class="pilwrap"><a href="#section-21" class="pilcrow">&#182;</a></div><p>Check if we're getting XML, use <code>xmlMode: true</code> with <code>cheerio</code> if so</p>
+</td><td class="code"><div class="highlight"><pre>        <span class="nv">$ = </span><span class="nx">cheerio</span><span class="p">.</span><span class="nx">load</span> <span class="nx">data</span><span class="p">,</span> <span class="p">(</span><span class="k">if</span> <span class="sr">/\.xml/</span><span class="p">.</span><span class="nx">test</span> <span class="nx">url</span> <span class="k">then</span> <span class="p">{</span><span class="nv">xmlMode: </span><span class="kc">yes</span><span class="p">}</span> <span class="k">else</span> <span class="p">{})</span></pre></div></td></tr><tr id="section-22"><td class="docs"><div class="pilwrap"><a href="#section-22" class="pilcrow">&#182;</a></div><p>Pass the parsed DOM object to the <code>Parser</code> method</p>
+</td><td class="code"><div class="highlight"><pre>        <span class="nv">result = </span><span class="nx">@parser</span><span class="p">[</span><span class="nx">parser_method</span><span class="p">](</span><span class="nx">$</span><span class="p">)</span>
+        <span class="nv">next_data_indices = </span><span class="nx">@parser</span><span class="p">.</span><span class="nx">get_next_data_indices</span><span class="p">(</span><span class="nx">$</span><span class="p">)</span></pre></div></td></tr><tr id="section-23"><td class="docs"><div class="pilwrap"><a href="#section-23" class="pilcrow">&#182;</a></div><p><code>result</code> is added to the list, <code>next_data_indices</code> is passed to the
+next <code>condition</code> and <code>unspool</code> calls</p>
+</td><td class="code"><div class="highlight"><pre>        <span class="k">return</span> <span class="nx">resolver</span><span class="p">.</span><span class="nx">resolve</span><span class="p">([</span><span class="nx">result</span><span class="p">,</span> <span class="nx">next_data_indices</span><span class="p">])</span>
+      <span class="k">return</span> <span class="nx">deferred</span><span class="p">.</span><span class="nx">promise</span></pre></div></td></tr><tr id="section-24"><td class="docs"><div class="pilwrap"><a href="#section-24" class="pilcrow">&#182;</a></div><p>The condition upon which <code>unfoldList</code> will stop</p>
+</td><td class="code"><div class="highlight"><pre>    <span class="nv">condition = </span><span class="nf">(next_data_indices) =&gt;</span>
+      <span class="k">return</span> <span class="p">(</span><span class="k">if</span> <span class="nx">next_data_indices</span><span class="o">?</span> <span class="k">then</span> <span class="o">\</span>
+        <span class="nx">@_is_empty</span> <span class="nx">next_data_indices</span> <span class="k">else</span> <span class="nx">next_data_indices</span><span class="p">)</span></pre></div></td></tr><tr id="section-25"><td class="docs"><div class="pilwrap"><a href="#section-25" class="pilcrow">&#182;</a></div><p>The initial seed for <code>unfoldList</code></p>
+</td><td class="code"><div class="highlight"><pre>    <span class="nv">initial_data_indices = </span><span class="kc">null</span>
+    <span class="nv">seed = </span><span class="nx">initial_data_indices</span></pre></div></td></tr><tr id="section-26"><td class="docs"><div class="pilwrap"><a href="#section-26" class="pilcrow">&#182;</a></div><p><code>unfoldList</code> handles the sequential execution of an unkown number of
+iterations of an asynchronous function, which is in this case grabbing
+data from the Pandora feeds (they may or may not have more pages, which
+is only known after fetching the current one), and returns a promise for
+an array of the results.</p>
+</td><td class="code"><div class="highlight"><pre>    <span class="k">return</span> <span class="nx">unfoldList</span><span class="p">(</span><span class="nx">unspool</span><span class="p">,</span> <span class="nx">condition</span><span class="p">,</span> <span class="nx">seed</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">then</span><span class="p">(</span></pre></div></td></tr><tr id="section-27"><td class="docs"><div class="pilwrap"><a href="#section-27" class="pilcrow">&#182;</a></div><p>Resolution</p>
+</td><td class="code"><div class="highlight"><pre>        <span class="nf">(results) -&gt;</span></pre></div></td></tr><tr id="section-28"><td class="docs"><div class="pilwrap"><a href="#section-28" class="pilcrow">&#182;</a></div><p>Flatten the resulting array</p>
+</td><td class="code"><div class="highlight"><pre>          <span class="k">return</span> <span class="p">[].</span><span class="nx">concat</span> <span class="nx">results</span><span class="p">...</span></pre></div></td></tr><tr id="section-29"><td class="docs"><div class="pilwrap"><a href="#section-29" class="pilcrow">&#182;</a></div><p>Rejection</p>
+</td><td class="code"><div class="highlight"><pre>        <span class="nf">(reason) -&gt;</span>
+          <span class="nx">console</span><span class="p">.</span><span class="nx">error</span> <span class="nx">reason</span>
+      <span class="p">)</span></pre></div></td></tr><tr id="section-30"><td class="docs"><div class="pilwrap"><a href="#section-30" class="pilcrow">&#182;</a></div><p>Grab a URL from <code>DATA_FEED_URLS</code> and format it appropriately.</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">_get_url: </span><span class="nf">(data_type, next_data_indices = null) -&gt;</span>
+    <span class="k">unless</span> <span class="nx">next_data_indices</span><span class="o">?</span>
+      <span class="nv">next_data_indices =</span>
+        <span class="nv">nextStartIndex: </span><span class="mi">0</span>
+        <span class="nv">nextLikeStartIndex: </span><span class="mi">0</span>
+        <span class="nv">nextThumbStartIndex: </span><span class="mi">0</span></pre></div></td></tr><tr id="section-31"><td class="docs"><div class="pilwrap"><a href="#section-31" class="pilcrow">&#182;</a></div><p>! We want to set the webname parameter as well</p>
+</td><td class="code"><div class="highlight"><pre>    <span class="nx">next_data_indices</span><span class="p">[</span><span class="s">&#39;webname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nx">@webname</span></pre></div></td></tr><tr id="section-32"><td class="docs"><div class="pilwrap"><a href="#section-32" class="pilcrow">&#182;</a></div><p>! Grab the proper URL</p>
+</td><td class="code"><div class="highlight"><pre>    <span class="nv">url = </span><span class="nx">DATA_FEED_URLS</span><span class="p">[</span><span class="nx">data_type</span><span class="p">]</span></pre></div></td></tr><tr id="section-33"><td class="docs"><div class="pilwrap"><a href="#section-33" class="pilcrow">&#182;</a></div><p>! Replace the parameters with values</p>
+</td><td class="code"><div class="highlight"><pre>    <span class="k">for</span> <span class="nx">url_string_param</span> <span class="k">of</span> <span class="nx">next_data_indices</span>
+      <span class="nv">url = </span><span class="nx">url</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span>
+        <span class="k">new</span> <span class="nb">RegExp</span><span class="p">(</span><span class="s">&quot;%{&quot;</span><span class="o">+</span><span class="nx">url_string_param</span><span class="o">+</span><span class="s">&quot;}&quot;</span><span class="p">)</span>
+      <span class="p">,</span> <span class="nx">next_data_indices</span><span class="p">[</span><span class="nx">url_string_param</span><span class="p">])</span>
+    <span class="k">return</span> <span class="nx">url</span></pre></div></td></tr><tr id="section-34"><td class="docs"><div class="pilwrap"><a href="#section-34" class="pilcrow">&#182;</a></div><p>Utility method to check if an object is empty or not.</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">_is_empty: </span><span class="nf">(obj) -&gt;</span>
+    <span class="k">if</span> <span class="nx">obj</span> <span class="o">is</span> <span class="kc">null</span> <span class="k">then</span> <span class="k">return</span> <span class="kc">yes</span>
+    <span class="k">if</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">length</span> <span class="o">and</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">then</span> <span class="k">return</span> <span class="kc">no</span>
+    <span class="k">if</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">length</span> <span class="o">is</span> <span class="mi">0</span> <span class="k">then</span> <span class="k">return</span> <span class="kc">yes</span>
+    <span class="k">for</span> <span class="nx">key</span> <span class="k">of</span> <span class="nx">obj</span>
+      <span class="k">if</span> <span class="nx">hasOwnProperty</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="nx">obj</span><span class="p">,</span> <span class="nx">key</span><span class="p">)</span> <span class="k">then</span> <span class="k">return</span> <span class="kc">no</span>
+    <span class="k">return</span> <span class="kc">yes</span>
+
+</pre></div></td></tr></tbody></table><div id="generated">generated Sun May 18 2014 23:57:49 GMT-0500 (CDT)  </div></div></body></html>

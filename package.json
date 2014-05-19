@@ -1,0 +1,37 @@
+{
+  "name": "pandata"
+, "version": "0.0.1"
+, "private": true
+, "description": "Pandora scraper"
+, "keywords": [
+    "pandora"
+  , "scraper"
+  , "scraping"
+  , "music"
+  , "taste"
+  ]
+, "author": "Will Mayner <wmayner@gmail.com> (http://www.willmayner.com)"
+, "repository": {
+    "type": "git"
+  , "url": "https://github.com/willmayner/pandata"
+  }
+, "main": "src/scraper.coffee"
+, "dependencies": {
+    "URIjs": "*"
+  , "request": "*"
+  , "cheerio": "*"
+  , "when": "*"
+  }
+, "devDependencies": {
+    "docco-husky": "*"
+  , "coffee-script": "*"
+  , "path": "*"
+  , "wrench": "*"
+  , "colors": "*"
+}
+, "engines": {
+    "node": "~0.10.x"
+  , "npm": "1.2.x"
+  }
+}
+

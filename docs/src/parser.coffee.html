@@ -1,0 +1,117 @@
+<!DOCTYPE html><html><head><title>parser.coffee</title><meta http-equiv="Content-Type" content="text/html" charset="UTF-8"><link rel="stylesheet" media="all" href="../docco.css"></head><body><div id="container"><div id="background"></div><div id="jump_to">Jump To &hellip;<div id="jump_wrapper"><div id="jump_page"><a href="../index.html" class="source"><span class="file_name">README</span></a><a href="../src/data_urls.coffee.html" class="source "><span class="base_path">src / </span><span class="file_name">data_urls.coffee</span></a><a href="../src/downloader.coffee.html" class="source "><span class="base_path">src / </span><span class="file_name">downloader.coffee</span></a><a href="../src/parser.coffee.html" class="source selected"><span class="base_path">src / </span><span class="file_name">parser.coffee</span></a><a href="../src/scraper.coffee.html" class="source "><span class="base_path">src / </span><span class="file_name">scraper.coffee</span></a></div></div></div><table cellpadding="0" cellspacing="0"><thead><tr><th class="docs"><h1>parser.coffee</h1><div class="filepath">src/</div></th><th class="code"></th></tr></thead><tbody><tr id="section-1"><td class="docs"><div class="pilwrap"><a href="#section-1" class="pilcrow">&#182;</a></div><h1>Parser</h1>
+</td><td class="code"><div class="highlight"><pre></pre></div></td></tr><tr id="section-2"><td class="docs"><div class="pilwrap"><a href="#section-2" class="pilcrow">&#182;</a></div><p>Parses HTML/XML pages from Pandora for relevant data.</p>
+</td><td class="code"><div class="highlight"><pre><span class="nv">module.exports = </span><span class="k">class</span> <span class="nx">Parser</span></pre></div></td></tr><tr id="section-3"><td class="docs"><div class="pilwrap"><a href="#section-3" class="pilcrow">&#182;</a></div><p>The <code>$</code> paramter in some of the functions in this file must be a
+jQuery-like object such as the one returned by
+<code>require('cheerio').load(&lt;some html document&gt;)</code></p>
+</td><td class="code"><div class="highlight"><pre></pre></div></td></tr><tr id="section-4"><td class="docs"><div class="pilwrap"><a href="#section-4" class="pilcrow">&#182;</a></div><p>Return the array of webnames from a user ID search.</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="vi">@get_webnames_from_search: </span><span class="nf">($) -&gt;</span>
+    <span class="nv">webnames = </span><span class="p">[]</span>
+    <span class="nx">$</span><span class="p">(</span><span class="s">&#39;.user_name a&#39;</span><span class="p">).</span><span class="nx">each</span> <span class="nf">(index, a) -&gt;</span> <span class="nx">webnames</span><span class="p">.</span><span class="nx">push</span> <span class="nx">$</span><span class="p">(</span><span class="nx">a</span><span class="p">).</span><span class="nx">text</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nx">webnames</span></pre></div></td></tr><tr id="section-5"><td class="docs"><div class="pilwrap"><a href="#section-5" class="pilcrow">&#182;</a></div><p>Return the query parameters necessary to get the next page of
+data from Pandora, or <code>false</code> if there are no more pages.</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">get_next_data_indices: </span><span class="nf">($) -&gt;</span>
+    <span class="nv">show_more = </span><span class="nx">$</span><span class="p">(</span><span class="nx">$</span><span class="p">(</span><span class="s">&#39;.show_more&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">if</span> <span class="nx">show_more</span>
+      <span class="nv">next_indices = </span><span class="p">{}</span>
+      <span class="nv">data_attributes = </span><span class="p">[</span>
+        <span class="s">&#39;nextStartIndex&#39;</span>
+        <span class="s">&#39;nextLikeStartIndex&#39;</span>
+        <span class="s">&#39;nextThumbStartIndex&#39;</span>
+      <span class="p">]</span>
+      <span class="k">for</span> <span class="nx">attr_name</span> <span class="k">in</span> <span class="nx">data_attributes</span>
+        <span class="nv">attr = </span><span class="nx">show_more</span><span class="p">.</span><span class="nx">attr</span><span class="p">(</span><span class="s">&#39;data-&#39;</span><span class="o">+</span><span class="nx">attr_name</span><span class="p">.</span><span class="nx">toLowerCase</span><span class="p">())</span>
+        <span class="k">if</span> <span class="nx">attr</span><span class="o">?</span> <span class="k">then</span> <span class="nx">next_indices</span><span class="p">[</span><span class="nx">attr_name</span><span class="p">]</span> <span class="o">=</span> <span class="nx">attr</span>
+      <span class="k">return</span> <span class="nx">next_indices</span>
+    <span class="k">else</span>
+      <span class="k">return</span> <span class="kc">false</span></pre></div></td></tr><tr id="section-6"><td class="docs"><div class="pilwrap"><a href="#section-6" class="pilcrow">&#182;</a></div><p>Return an array of recent activity names.</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">get_recent_activity: </span><span class="nf">($) -&gt;</span>
+    <span class="nv">results = </span><span class="p">[]</span>
+    <span class="k">for</span> <span class="nx">item</span> <span class="k">in</span> <span class="nx">@_xml_items</span><span class="p">(</span><span class="nx">$</span><span class="p">)</span>
+      <span class="nv">item = </span><span class="nx">item</span><span class="p">.</span><span class="nx">title</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s">&quot; by &quot;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="nx">item</span><span class="p">.</span><span class="nx">length</span> <span class="o">is</span> <span class="mi">2</span>
+        <span class="nx">results</span><span class="p">.</span><span class="nx">push</span>
+          <span class="nv">track: </span><span class="nx">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+          <span class="nv">artist: </span><span class="nx">item</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+      <span class="k">else</span> <span class="nx">results</span><span class="p">.</span><span class="nx">push</span> <span class="nx">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nx">results</span></pre></div></td></tr><tr id="section-7"><td class="docs"><div class="pilwrap"><a href="#section-7" class="pilcrow">&#182;</a></div><p>Return an array of station names.</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">get_stations: </span><span class="nf">($) -&gt;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="nx">item</span><span class="p">.</span><span class="nx">title</span> <span class="k">for</span> <span class="nx">item</span> <span class="k">in</span> <span class="nx">@_xml_items</span><span class="p">(</span><span class="nx">$</span><span class="p">))</span></pre></div></td></tr><tr id="section-8"><td class="docs"><div class="pilwrap"><a href="#section-8" class="pilcrow">&#182;</a></div><p>Return the currently playing station, or a placeholder
+string if there is no currently playing station.</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">get_playing_station: </span><span class="nf">($) -&gt;</span>
+    <span class="nv">items = </span><span class="nx">@_xml_items</span><span class="p">(</span><span class="nx">$</span><span class="p">)</span>
+    <span class="k">unless</span> <span class="nx">items</span><span class="p">.</span><span class="nx">length</span> <span class="o">is</span> <span class="mi">0</span>
+      <span class="k">return</span> <span class="nx">items</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">title</span>
+    <span class="k">else</span>
+      <span class="k">return</span> <span class="s">&#39;No station is currently playing.&#39;</span></pre></div></td></tr><tr id="section-9"><td class="docs"><div class="pilwrap"><a href="#section-9" class="pilcrow">&#182;</a></div><p>Return an array of bookmarked tracks (objects with <code>track</code> and
+<code>artist</code> keys).</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">get_bookmarked_tracks: </span><span class="nf">($) -&gt;</span>
+    <span class="k">return</span> <span class="p">({</span><span class="nv">track: </span><span class="nx">item</span><span class="p">.</span><span class="nx">title</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s">&#39; by &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="o">\</span>
+      <span class="nv">artist: </span><span class="nx">item</span><span class="p">.</span><span class="nx">title</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s">&#39; by &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]}</span> <span class="k">for</span> <span class="nx">item</span> <span class="k">in</span> <span class="nx">@_xml_items</span><span class="p">(</span><span class="nx">$</span><span class="p">))</span></pre></div></td></tr><tr id="section-10"><td class="docs"><div class="pilwrap"><a href="#section-10" class="pilcrow">&#182;</a></div><p>Return array of bookmarked artist names.</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">get_bookmarked_artists: </span><span class="nf">($) -&gt;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="nx">item</span><span class="p">.</span><span class="nx">title</span> <span class="k">for</span> <span class="nx">item</span> <span class="k">in</span> <span class="nx">@_xml_items</span><span class="p">(</span><span class="nx">$</span><span class="p">))</span></pre></div></td></tr><tr id="section-11"><td class="docs"><div class="pilwrap"><a href="#section-11" class="pilcrow">&#182;</a></div><p>Return an array of liked tracks (objects with <code>track</code> and <code>artist</code> keys).</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">get_liked_tracks: </span><span class="nf">($) -&gt;</span>
+    <span class="k">return</span> <span class="p">({</span><span class="nv">track: </span><span class="nx">infobox</span><span class="p">.</span><span class="nx">title</span><span class="p">,</span> <span class="nv">artist: </span><span class="nx">infobox</span><span class="p">.</span><span class="nx">subtitle</span><span class="p">}</span> <span class="o">\</span>
+      <span class="k">for</span> <span class="nx">infobox</span> <span class="k">in</span> <span class="nx">@_infoboxes</span><span class="p">(</span><span class="nx">$</span><span class="p">))</span></pre></div></td></tr><tr id="section-12"><td class="docs"><div class="pilwrap"><a href="#section-12" class="pilcrow">&#182;</a></div><p>Return an array of liked artists.</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">get_liked_artists: </span><span class="nf">($) -&gt;</span>
+    <span class="k">return</span> <span class="nx">@_get_infobox_titles</span><span class="p">(</span><span class="nx">$</span><span class="p">)</span></pre></div></td></tr><tr id="section-13"><td class="docs"><div class="pilwrap"><a href="#section-13" class="pilcrow">&#182;</a></div><p>Return an array of liked stations.</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">get_liked_stations: </span><span class="nf">($) -&gt;</span>
+    <span class="k">return</span> <span class="nx">@_get_infobox_titles</span><span class="p">(</span><span class="nx">$</span><span class="p">)</span></pre></div></td></tr><tr id="section-14"><td class="docs"><div class="pilwrap"><a href="#section-14" class="pilcrow">&#182;</a></div><p>Return an array of liked albums (objects with <code>album</code> and <code>artist</code> keys).</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">get_liked_albums: </span><span class="nf">($) -&gt;</span>
+    <span class="k">return</span> <span class="p">({</span><span class="nv">album: </span><span class="nx">infobox</span><span class="p">.</span><span class="nx">title</span><span class="p">,</span> <span class="nv">artist: </span><span class="nx">infobox</span><span class="p">.</span><span class="nx">subtitle</span><span class="p">}</span> <span class="o">\</span>
+      <span class="k">for</span> <span class="nx">infobox</span> <span class="k">in</span> <span class="nx">@_infoboxes</span><span class="p">(</span><span class="nx">$</span><span class="p">))</span></pre></div></td></tr><tr id="section-15"><td class="docs"><div class="pilwrap"><a href="#section-15" class="pilcrow">&#182;</a></div><p>Return an array of Pandora users this user follows (objects with <code>name</code>,
+<code>webname</code>, and <code>href keys</code>).</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">get_following: </span><span class="nf">($) -&gt;</span>
+    <span class="k">return</span> <span class="nx">@_get_followx_users</span><span class="p">(</span><span class="nx">$</span><span class="p">)</span></pre></div></td></tr><tr id="section-16"><td class="docs"><div class="pilwrap"><a href="#section-16" class="pilcrow">&#182;</a></div><p>Return an array of Pandora users following this user (objects with <code>name</code>,
+<code>webname</code>, and <code>href keys</code>).</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">get_followers: </span><span class="nf">($) -&gt;</span>
+    <span class="k">return</span> <span class="nx">@_get_followx_users</span><span class="p">(</span><span class="nx">$</span><span class="p">)</span></pre></div></td></tr><tr id="section-17"><td class="docs"><div class="pilwrap"><a href="#section-17" class="pilcrow">&#182;</a></div><h3>Private methods</h3>
+</td><td class="code"><div class="highlight"><pre></pre></div></td></tr><tr id="section-18"><td class="docs"><div class="pilwrap"><a href="#section-18" class="pilcrow">&#182;</a></div><p>Take the parsed XML feed returned by <code>xml2js</code>.
+Return the title and description of each <code>item</code> in the feed.</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">_xml_items: </span><span class="nf">($) -&gt;</span>
+    <span class="nv">result = </span><span class="p">[]</span>
+    <span class="nx">$</span><span class="p">(</span><span class="s">&#39;item&#39;</span><span class="p">).</span><span class="nx">each</span> <span class="nf">(index, item) -&gt;</span>
+      <span class="nv">item = </span><span class="nx">$</span><span class="p">(</span><span class="nx">item</span><span class="p">)</span>
+      <span class="nv">title = </span><span class="nx">item</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s">&#39;title&#39;</span><span class="p">).</span><span class="nx">first</span><span class="p">().</span><span class="nx">text</span><span class="p">()</span>
+      <span class="nv">description = </span><span class="nx">item</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s">&#39;description&#39;</span><span class="p">).</span><span class="nx">first</span><span class="p">().</span><span class="nx">text</span><span class="p">()</span>
+      <span class="nx">result</span><span class="p">.</span><span class="nx">push</span>
+        <span class="nv">title: </span><span class="nx">title</span>
+        <span class="nv">description: </span><span class="nx">description</span>
+    <span class="k">return</span> <span class="nx">result</span></pre></div></td></tr><tr id="section-19"><td class="docs"><div class="pilwrap"><a href="#section-19" class="pilcrow">&#182;</a></div><p>Return the title and description of each <code>infobox</code> on the page.</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">_infoboxes: </span><span class="nf">($) -&gt;</span>
+    <span class="nv">infoboxes = </span><span class="p">[]</span>
+    <span class="nx">$</span><span class="p">(</span><span class="s">&#39;.infobox&#39;</span><span class="p">).</span><span class="nx">each</span> <span class="nf">(index, infobox) -&gt;</span>
+      <span class="nv">infobox = </span><span class="nx">$</span><span class="p">(</span><span class="nx">infobox</span><span class="p">)</span>
+      <span class="nv">infobox_body = </span><span class="nx">infobox</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s">&#39;.infobox-body&#39;</span><span class="p">)</span>
+
+      <span class="nv">title_link = </span><span class="nx">infobox_body</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s">&#39;h3 a&#39;</span><span class="p">).</span><span class="nx">text</span><span class="p">()</span>
+      <span class="nv">subtitle_link = </span><span class="nx">infobox_body</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s">&#39;p a&#39;</span><span class="p">).</span><span class="nx">first</span><span class="p">()</span>
+      <span class="k">if</span> <span class="nx">subtitle_link</span> <span class="k">then</span> <span class="nv">subtitle_link = </span><span class="nx">subtitle_link</span><span class="p">.</span><span class="nx">text</span><span class="p">()</span>
+
+      <span class="nx">infoboxes</span><span class="p">.</span><span class="nx">push</span>
+        <span class="nv">title: </span><span class="nx">title_link</span>
+        <span class="nv">subtitle: </span><span class="nx">subtitle_link</span>
+
+    <span class="k">return</span> <span class="nx">infoboxes</span></pre></div></td></tr><tr id="section-20"><td class="docs"><div class="pilwrap"><a href="#section-20" class="pilcrow">&#182;</a></div><p>Return an array of titles from infoboxes.</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">_get_infobox_titles: </span><span class="nf">($) -&gt;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="nx">infobox</span><span class="p">.</span><span class="nx">title</span> <span class="k">for</span> <span class="nx">infobox</span> <span class="k">in</span> <span class="nx">@_infoboxes</span><span class="p">(</span><span class="nx">$</span><span class="p">))</span></pre></div></td></tr><tr id="section-21"><td class="docs"><div class="pilwrap"><a href="#section-21" class="pilcrow">&#182;</a></div><p>Return the users found in a follower/following search, in the format
+<code>{name: &lt;name&gt;, webname: &lt;webname&gt;, href: &lt;href&gt;}</code></p>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">_get_followx_users: </span><span class="nf">($) -&gt;</span>
+    <span class="nv">users = </span><span class="p">[]</span>
+    <span class="nx">$</span><span class="p">(</span><span class="s">&#39;.follow_section&#39;</span><span class="p">).</span><span class="nx">each</span> <span class="nf">(index, section) -&gt;</span>
+      <span class="nv">section = </span><span class="nx">$</span><span class="p">(</span><span class="nx">section</span><span class="p">)</span>
+      <span class="nv">listener_name = </span><span class="nx">section</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s">&#39;.listener_name&#39;</span><span class="p">).</span><span class="nx">first</span><span class="p">()</span>
+      <span class="nv">webname = </span><span class="nx">listener_name</span><span class="p">.</span><span class="nx">attr</span><span class="p">(</span><span class="s">&#39;webname&#39;</span><span class="p">)</span></pre></div></td></tr><tr id="section-22"><td class="docs"><div class="pilwrap"><a href="#section-22" class="pilcrow">&#182;</a></div><p>Remove any 'spans with a space' that sometimes appear with special
+characters.</p>
+</td><td class="code"><div class="highlight"><pre>      <span class="nx">listener_name</span><span class="p">.</span><span class="nx">remove</span><span class="p">(</span><span class="s">&#39;span&#39;</span><span class="p">)</span></pre></div></td></tr><tr id="section-23"><td class="docs"><div class="pilwrap"><a href="#section-23" class="pilcrow">&#182;</a></div><p>Strip tabs that sometimes appear</p>
+</td><td class="code"><div class="highlight"><pre>      <span class="nv">name = </span><span class="nx">listener_name</span><span class="p">.</span><span class="nx">text</span><span class="p">().</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/\t/</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+
+      <span class="nv">href = </span><span class="nx">section</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s">&#39;a&#39;</span><span class="p">).</span><span class="nx">first</span><span class="p">().</span><span class="nx">attr</span><span class="p">(</span><span class="s">&#39;href&#39;</span><span class="p">)</span>
+
+      <span class="nx">users</span><span class="p">.</span><span class="nx">push</span>
+        <span class="nv">name: </span><span class="nx">name</span>
+        <span class="nv">webname: </span><span class="nx">webname</span>
+        <span class="nv">href: </span><span class="nx">href</span>
+
+    <span class="k">return</span> <span class="nx">users</span>
+
+</pre></div></td></tr></tbody></table><div id="generated">generated Sun May 18 2014 23:57:48 GMT-0500 (CDT)  </div></div></body></html>

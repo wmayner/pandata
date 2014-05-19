@@ -1,0 +1,42 @@
+<!DOCTYPE html><html><head><title>downloader.coffee</title><meta http-equiv="Content-Type" content="text/html" charset="UTF-8"><link rel="stylesheet" media="all" href="../docco.css"></head><body><div id="container"><div id="background"></div><div id="jump_to">Jump To &hellip;<div id="jump_wrapper"><div id="jump_page"><a href="../index.html" class="source"><span class="file_name">README</span></a><a href="../src/data_urls.coffee.html" class="source "><span class="base_path">src / </span><span class="file_name">data_urls.coffee</span></a><a href="../src/downloader.coffee.html" class="source selected"><span class="base_path">src / </span><span class="file_name">downloader.coffee</span></a><a href="../src/parser.coffee.html" class="source "><span class="base_path">src / </span><span class="file_name">parser.coffee</span></a><a href="../src/scraper.coffee.html" class="source "><span class="base_path">src / </span><span class="file_name">scraper.coffee</span></a></div></div></div><table cellpadding="0" cellspacing="0"><thead><tr><th class="docs"><h1>downloader.coffee</h1><div class="filepath">src/</div></th><th class="code"></th></tr></thead><tbody><tr id="section-1"><td class="docs"><div class="pilwrap"><a href="#section-1" class="pilcrow">&#182;</a></div>
+</td><td class="code"><div class="highlight"><pre><span class="nv">URI = </span><span class="nx">require</span> <span class="s">&#39;URIjs&#39;</span>
+<span class="nv">request = </span><span class="nx">require</span> <span class="s">&#39;request&#39;</span></pre></div></td></tr><tr id="section-2"><td class="docs"><div class="pilwrap"><a href="#section-2" class="pilcrow">&#182;</a></div><h1>Downloader</h1>
+</td><td class="code"><div class="highlight"><pre></pre></div></td></tr><tr id="section-3"><td class="docs"><div class="pilwrap"><a href="#section-3" class="pilcrow">&#182;</a></div><p>Retrieves data from Pandora.com and handles network errors.</p>
+</td><td class="code"><div class="highlight"><pre><span class="nv">module.exports = </span><span class="k">class</span> <span class="nx">Downloader</span></pre></div></td></tr><tr id="section-4"><td class="docs"><div class="pilwrap"><a href="#section-4" class="pilcrow">&#182;</a></div><p>A GitHub Gist that contains an updated cookie allowing access to
+'login-only' visible data.</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="nv">CONFIG_URL = </span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">    https://gist.github.com/ustasb/596f1ee96d03463fde77/raw/pandata_config.json</span>
+<span class="s">    &quot;&quot;&quot;</span></pre></div></td></tr><tr id="section-5"><td class="docs"><div class="pilwrap"><a href="#section-5" class="pilcrow">&#182;</a></div><p>The cached cookie.</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="vi">@cookie: </span><span class="kc">null</span></pre></div></td></tr><tr id="section-6"><td class="docs"><div class="pilwrap"><a href="#section-6" class="pilcrow">&#182;</a></div><p>Downloads and reads a page from a URL, then executes a callback on the
+data.</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="vi">@read_page: </span><span class="nf">(url, callback) =&gt;</span>
+    <span class="nx">@get_cookie</span> <span class="o">=&gt;</span>
+      <span class="nx">@download</span> <span class="nx">url</span><span class="p">,</span> <span class="nx">@cookie</span><span class="p">,</span> <span class="nf">(data) =&gt;</span>
+        <span class="k">return</span> <span class="nx">callback</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span></pre></div></td></tr><tr id="section-7"><td class="docs"><div class="pilwrap"><a href="#section-7" class="pilcrow">&#182;</a></div><p>Downloads a page, handles errors, and executes a callback on the data.</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="vi">@download: </span><span class="nf">(url, cookie, callback) =&gt;</span>
+    <span class="nv">jar = </span><span class="nx">request</span><span class="p">.</span><span class="nx">jar</span><span class="p">()</span>
+    <span class="nx">jar</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="nx">request</span><span class="p">.</span><span class="nx">cookie</span><span class="p">(</span><span class="nx">cookie</span><span class="p">))</span></pre></div></td></tr><tr id="section-8"><td class="docs"><div class="pilwrap"><a href="#section-8" class="pilcrow">&#182;</a></div><p>Normalize URL</p>
+</td><td class="code"><div class="highlight"><pre>    <span class="nv">url = </span><span class="k">new</span> <span class="nx">URI</span><span class="p">(</span><span class="nx">url</span><span class="p">).</span><span class="nx">normalize</span><span class="p">().</span><span class="nx">toString</span><span class="p">()</span>
+
+    <span class="nx">request</span> <span class="p">{</span><span class="nv">uri: </span><span class="nx">url</span><span class="p">,</span> <span class="nv">jar: </span><span class="nx">jar</span><span class="p">},</span> <span class="nf">(error, response, body) -&gt;</span>
+      <span class="k">if</span> <span class="nx">error</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;&quot;&quot;The network request for:\n  </span><span class="si">#{</span><span class="nx">url</span><span class="si">}</span><span class="s">\n</span>
+<span class="s">          returned an error:\n  </span><span class="si">#{</span><span class="nx">error</span><span class="p">.</span><span class="nx">message</span><span class="si">}</span><span class="s">&quot;</span>
+<span class="s">          Please try again later or update Pandata.</span>
+<span class="s">          Sorry about that!\n\nFull error:&quot;&quot;&quot;</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">error</span><span class="p">.</span><span class="nx">stack</span>
+      <span class="k">else</span>
+        <span class="nx">callback</span><span class="p">(</span><span class="nx">body</span><span class="p">)</span></pre></div></td></tr><tr id="section-9"><td class="docs"><div class="pilwrap"><a href="#section-9" class="pilcrow">&#182;</a></div><p>Sets <code>@cookie</code> to the cached cookie, or retrieves it if it's not already
+there, and executes the callback</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="vi">@get_cookie: </span><span class="nf">(callback) =&gt;</span>
+    <span class="k">unless</span> <span class="nx">@cookie</span><span class="o">?</span>
+      <span class="nx">@download_cookie</span> <span class="nf">(cookie) =&gt;</span>
+        <span class="vi">@cookie = </span><span class="nx">cookie</span>
+        <span class="k">return</span> <span class="nx">callback</span><span class="p">()</span>
+    <span class="k">else</span> <span class="k">return</span> <span class="nx">callback</span><span class="p">()</span></pre></div></td></tr><tr id="section-10"><td class="docs"><div class="pilwrap"><a href="#section-10" class="pilcrow">&#182;</a></div><p>Fetches an up-to-date cookie based on the <code>CONFIG_URL</code> and
+executes the callback on the parsed response</p>
+</td><td class="code"><div class="highlight"><pre>  <span class="vi">@download_cookie: </span><span class="nf">(callback) =&gt;</span>
+    <span class="nx">@download</span> <span class="nx">CONFIG_URL</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="nf">(body) =&gt;</span>
+      <span class="nx">callback</span><span class="p">(</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">body</span><span class="p">).</span><span class="nx">cookie</span><span class="p">)</span>
+
+</pre></div></td></tr></tbody></table><div id="generated">generated Sun May 18 2014 23:57:48 GMT-0500 (CDT)  </div></div></body></html>
