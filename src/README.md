@@ -73,7 +73,7 @@ data. Use them like so:
 
 For more information on the API methods and the data returned, refer to the the
 [API
-documentation](https://github.com/crowdsurf/crowdsurf/tree/develop/pandata/src).
+documentation](https://github.com/wmayner/pandata).
 
 #### A note on promises ###
 
